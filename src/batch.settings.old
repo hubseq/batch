@@ -1,0 +1,13 @@
+{"vcpus": 2,
+ "memory": 20000,
+ "mountpoints": [{"containerPath": "/docker_scratch", "readOnly": false, "sourceVolume": "docker_scratch"}],
+ "volumes": [{"name": "docker_scratch", "host": {"sourcePath": "/docker_scratch/"}}],
+ "jobqueue": "scratch-queue",
+ "ecr_registry": "061362520762.dkr.ecr.us-west-2.amazonaws.com",
+ "aws_ecr_role": "arn:aws:iam::700080227344:instance-profile/ecs_instance_role",
+ "aws_region": "us-west-2",
+ "working_dir": "/docker_scratch",
+ "S3_DOCKER_DIR": "s3://npimodules/",
+ "S3_CONFIG_DIR": "s3://npiconfig/",
+ "S3_NGSRUNS_DIR": "s3://npiruns/"
+}

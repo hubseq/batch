@@ -1,0 +1,12 @@
+{"vcpus": 2,
+ "memory": 6000,
+ "jobqueue": "batch_scratch_queue",
+ "ecr_registry": "700080227344.dkr.ecr.us-west-2.amazonaws.com",
+ "aws_ecr_role": "arn:aws:iam::700080227344:instance-profile/ecs_instance_role",
+ "aws_ecs_job_role": "arn:aws:iam::700080227344:role/ecs_batch_service_role",
+ "aws_region": "us-west-2",
+ "working_dir": "/data",
+ "S3_DOCKER_DIR": "s3://npimodules/",
+ "S3_CONFIG_DIR": "s3://npiconfig/",
+ "S3_NGSRUNS_DIR": "s3://npiruns/"
+}
