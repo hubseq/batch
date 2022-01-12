@@ -5,7 +5,7 @@
  "aws_ecr_role": "arn:aws:iam::700080227344:instance-profile/ecs_instance_role",
  "aws_ecs_job_role": "arn:aws:iam::700080227344:role/ecs_batch_service_role",
  "aws_region": "us-west-2",
- "working_dir": "/data",
+ "working_dir": "/home",
  "S3_DOCKER_DIR": "s3://npimodules/",
  "S3_CONFIG_DIR": "s3://npiconfig/",
  "S3_NGSRUNS_DIR": "s3://npiruns/"
