@@ -87,12 +87,12 @@ def run_batchjob( args_json ):
     
     # set properties for this job
     job_properties = setJobProperties( module_name, batch_defaults_json, module_template_json )
-    job_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job' )
+    job_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_name' )
     print('Setting job properties for job: '+str(job_name))
 
     # set input and compute parameters for job submission - save this job submission info
     job_overrides = {'command': setContainerOverrides(batch_defaults_json['working_dir'], module_name, io_json_remote_full_path)}
-    job_json = job_overrides
+    job_json = {'container_overrides': job_overrides}
     job_json['jobqueue'] = JOB_QUEUE
     job_json['jobname'] = job_name    
     job_json_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_json' )
@@ -103,7 +103,7 @@ def run_batchjob( args_json ):
     job_def_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_def' )
     jobid_final = ''    
     if not module_utils.isDryRun( args_json ):
-        # register job definition    
+        # register job definition
         job_def_response = client.register_job_definition( jobDefinitionName = job_def_name,
                                                            type='container',
                                                            retryStrategy={'attempts': 3},
