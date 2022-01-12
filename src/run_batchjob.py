@@ -19,6 +19,7 @@ sys.path.append('../../global_utils/src/')
 import module_utils
 import file_utils
 from argparse import ArgumentParser
+from datetime import datetime
 
 BATCH_SETTINGS_FILE = 'batch.settings.json'
 
@@ -90,11 +91,15 @@ def run_batchjob( args_json ):
     job_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_name' )
     print('Setting job properties for job: '+str(job_name))
 
+    # get the date and time stamp right before we submit job
+    job_submission_timestamp = str(datetime.now())
+    
     # set input and compute parameters for job submission - save this job submission info
     job_overrides = {'command': setContainerOverrides(batch_defaults_json['working_dir'], module_name, io_json_remote_full_path)}
     job_json = {'container_overrides': job_overrides}
     job_json['jobqueue'] = JOB_QUEUE
-    job_json['jobname'] = job_name    
+    job_json['jobname'] = job_name
+    job_json['job_submission_timestamp'] = job_submission_timestamp
     job_json_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_json' )
     file_utils.writeJSON( job_json, job_json_name )
     job_json_remote_folder = file_utils.uploadFile(job_json_name, module_utils.getModuleJobDirectory( module_name ))
