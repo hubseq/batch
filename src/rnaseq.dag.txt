@@ -1,0 +1,5 @@
+# for simplicity, only one DAG per pipeline for now.
+# A > B  indicates that module A runs, then module B (a directed edge from A to B)
+# A >? B indicates that B is an optional module (omitting B will not affect rest of pipeline)
+# A >+ B indicates that module B must wait for all samples of A to finish (all A nodes have directed edges (sink) into B)
+bcl2fastq > fastqc,rnastar >+ deseq2

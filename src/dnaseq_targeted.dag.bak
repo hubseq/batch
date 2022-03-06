@@ -1,0 +1,4 @@
+# for simplicity, only one DAG per pipeline for now.
+# A > B  indicates that module A runs, then module B (a directed edge from A to B)
+# A >? B indicates that B is an optional module (omitting B will not affect rest of pipeline)
+bcl2fastq > fastqc,bwamem,bwamem_bam > mpileup > varscan2
