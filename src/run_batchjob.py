@@ -44,7 +44,7 @@ def run_batchjob( args_json ):
     
     def createDependentIdList( jobid_list ):
         jobid_list_final=[]        
-        jobid_list = jobid_list.split(',')) if type(args_json['dependentid']) == str else jobid_list
+        jobid_list = jobid_list.split(',') if type(args_json['dependentid']) == str else jobid_list
         for jobid in jobid_list:
             if jobid != '':
                 jobid_list_final.append({'jobId': jobid})
