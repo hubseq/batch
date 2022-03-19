@@ -43,12 +43,13 @@ def setJobProperties( module_name, batch_defaults_json, module_template_json):
 def run_batchjob( args_json ):
     
     def createDependentIdList( jobid_list ):
-        jobid_list_final=[]
+        jobid_list_final=[]        
+        jobid_list = jobid_list.split(',')) if type(args_json['dependentid']) == str else jobid_list
         for jobid in jobid_list:
             if jobid != '':
                 jobid_list_final.append({'jobId': jobid})
         return jobid_list_final
-
+    
     def setContainerOverrides( WORKING_DIR, module_name, runargs_filepath ):
         mycommand = []
         mycommand += ['--module_name', module_name]
@@ -85,7 +86,7 @@ def run_batchjob( args_json ):
     
     # initialize job jobQueue and dependent IDs
     JOB_QUEUE = args_json['jobqueue'] if 'jobqueue' in args_json and args_json['jobqueue'] != '' else batch_defaults_json['jobqueue']
-    DEPENDENT_IDS = createDependentIdList(args_json['dependentid'].split(',')) if 'dependentid' in args_json and args_json['dependentid'] != '' else []
+    DEPENDENT_IDS = createDependentIdList(args_json['dependentid']) if ('dependentid' in args_json and args_json['dependentid'] != None) else []
     
     # set properties for this job
     job_properties = setJobProperties( module_name, batch_defaults_json, module_template_json )
