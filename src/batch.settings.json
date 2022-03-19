@@ -1,6 +1,6 @@
 {"vcpus": 2,
  "memory": 6000,
- "jobqueue": "batch_scratch_queue",
+ "jobqueue": "batch_scratch_queue_public",
  "ecr_registry": "700080227344.dkr.ecr.us-west-2.amazonaws.com",
  "aws_ecr_role": "arn:aws:iam::700080227344:instance-profile/ecs_instance_role",
  "aws_ecs_job_role": "arn:aws:iam::700080227344:role/ecs_batch_service_role",

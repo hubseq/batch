@@ -145,6 +145,7 @@ if __name__ == '__main__':
     argparser = ArgumentParser()
     file_path_group = argparser.add_argument_group(title='Run batch job arguments')
     file_path_group.add_argument('--module', '-m', help='name of docker module', required=True)
+    file_path_group.add_argument('--program_subname', '-sub', help='subprogram to run. e.g., "mpileup" to run samtools mpileup using samtools module.', required=False, default='')
     file_path_group.add_argument('--sampleid', '-sid', help='sample ID', required=False)
     file_path_group.add_argument('--input', '-i', help='input file(s), e.g. my_R1.fastq,my_R2.fastq', required=True)
     file_path_group.add_argument('--output', '-o', help='output file(s)', required=True)
