@@ -23,7 +23,11 @@ from argparse import ArgumentParser
 from datetime import datetime
 from run_batchjob import run_batchjob
 
+SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
+
 def run_pipeline( args_json ):
+    global SCRIPT_DIR
+    
     def getDAG( pipeline ):
         """ Creates a DAG adjacency dictionary from the pipeline DAG file.
         
@@ -43,7 +47,7 @@ def run_pipeline( args_json ):
         """
         dag_order = []
         dependency_dag = {}
-        with open(pipeline+'.dag.txt','r') as f:
+        with open(os.path.join(SCRIPT_DIR, pipeline+'.dag.txt'),'r') as f:
             while True:
                 r = f.readline()
                 if r == '':

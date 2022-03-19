@@ -21,7 +21,8 @@ import file_utils
 from argparse import ArgumentParser
 from datetime import datetime
 
-BATCH_SETTINGS_FILE = 'batch.settings.json'
+SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
+BATCH_SETTINGS_FILE = os.path.join(SCRIPT_DIR, 'batch.settings.json')
 
 
 def setJobProperties( module_name, batch_defaults_json, module_template_json):
