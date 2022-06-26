@@ -78,7 +78,7 @@ def run_batchjob( args_json ):
     
     # upload IO JSON to module directory
     io_json_remote_folder = file_utils.uploadFile(io_json_name, module_utils.getModuleIODirectory( module_name ))
-    io_json_remote_full_path = os.path.join(io_json_remote_folder, io_json_name)
+    io_json_remote_full_path = io_json_remote_folder #os.path.join(io_json_remote_folder, io_json_name)
     
     # initialize Batch boto3 client access
     print('\nSetting up boto3 client in {}...'.format(batch_defaults_json['aws_region']))
