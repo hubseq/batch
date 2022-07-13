@@ -1,0 +1,1 @@
+{"input": ["s3://hubseq-data/test/rnaseq/run_test1/david_go/davidgo.goterms.txt"], "output": ["s3://hubseq-data/test/rnaseq/run_test1/goqc/"], "alternate_inputs": [], "alternate_outputs": [], "program_arguments": "", "sample_id": "goqc_test"}

@@ -1,0 +1,18 @@
+order:
+  1: "bcl2fastq"
+  2: "*fastqc"
+  3: "rnastar, bwamem"
+  4: "expressionqc"
+  5: "deseq2"
+
+fastqc:
+  input_file: ".fastq, .fastq.gz"
+
+rnastar:
+  input_file: ".fastq, .fastq.gz"
+
+expressionqc:
+  input_file: ".tab"
+
+deseq2:
+  input_file: ".counts_matrix.column.csv, .csv"

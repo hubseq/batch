@@ -1,0 +1,1 @@
+{"input": ["s3://hubseq-data/test/rnaseq/run_test1/deseq2/deseq2.group1-vs-group2-results.csv"], "output": ["s3://hubseq-data/test/rnaseq/run_test1/david_go/"], "alternate_inputs": [], "alternate_outputs": [], "program_arguments": "-cond pvalue<0.5,log2FoldChange>0.5", "sample_id": "david_go_test"}

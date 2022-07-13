@@ -1,0 +1,1 @@
+{"input": ["s3://hubseq-data/test/rnaseq/run_test1/expressionqc/expressionqc.counts_matrix.column.csv"], "output": ["s3://hubseq-data/test/rnaseq/run_test1/deseq2/"], "alternate_inputs": ["s3://hubseq-data/test/rnaseq/run_test1/expressionqc/expressionqc.samplegroups.csv"], "alternate_outputs": [], "program_arguments": "", "sample_id": "deseq2_test"}

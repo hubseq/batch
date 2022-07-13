@@ -1,0 +1,1 @@
+{"input": ["s3://hubseq-data/test/rnaseq/run_test1/deseq2/deseq2.group1-vs-group2-results.csv"], "output": ["s3://hubseq-data/test/rnaseq/run_test1/deqc/"], "alternate_inputs": [], "alternate_outputs": [], "program_arguments": "-pvaluecolumn pvalue", "sample_id": "deqc_test"}
