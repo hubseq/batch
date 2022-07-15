@@ -1,18 +1,45 @@
 order:
-  1: "bcl2fastq"
-  2: "*fastqc"
-  3: "rnastar, bwamem"
-  4: "expressionqc"
-  5: "deseq2"
+  - "bcl2fastq"
+  - "*fastqc"
+  - "rnastar, bwamem"
+  - "expressionqc"
+  - "deseq2"
+  - "*deqc"
+  - "david_go"
+  - "goqc"
 
 fastqc:
-  input_file: ".fastq, .fastq.gz"
+  input_file: ".fastq.gz, .fastq, .fq.gz, .fq"
+  output: "<sample_id>_fastqc.html"
+  module_type: linear
 
 rnastar:
-  input_file: ".fastq, .fastq.gz"
+  input_file: ".fastq.gz, .fastq, .fq.gz, .fq"
+  output: "<sample_id>.ReadsPerGene.out.tab"
+  module_type: linear
+  ignore: "_I1., _I2."
 
 expressionqc:
-  input_file: ".tab"
+  input_file: "ReadsPerGene.tab, counts.txt"
+  output: "expressionqc.counts_matrix.column.csv"
+  module_type: merge
 
 deseq2:
-  input_file: ".counts_matrix.column.csv, .csv"
+  input_file: ".counts_matrix.column.csv, counts.csv"
+  output: "deseq2.group1-vs-group2-results.csv"
+  module_type: merge
+
+deqc:
+  input_file: "results.csv"
+  output: "de.deqc.volcano-and-ma-plots.html"
+  module_type: linear
+
+david_go:
+  input_file: "results.csv"
+  output: "davidgo.goterms.txt"
+  module_type: linear
+
+goqc:
+  input_file: "goterms.txt"
+  output: "go.goqc.barplots.html"
+  module_type: linear

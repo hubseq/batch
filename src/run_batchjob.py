@@ -41,53 +41,59 @@ def setJobProperties( module_name, batch_defaults_json, module_template_json):
 
 
 def run_batchjob( args_json ):
-    
+
     def createDependentIdList( jobid_list ):
-        jobid_list_final=[]        
+        jobid_list_final=[]
         jobid_list = jobid_list.split(',') if type(args_json['dependentid']) == str else jobid_list
         for jobid in jobid_list:
             if jobid != '':
                 jobid_list_final.append({'jobId': jobid})
         return jobid_list_final
-    
+
     def setContainerOverrides( WORKING_DIR, module_name, runargs_filepath ):
         mycommand = []
         mycommand += ['--module_name', module_name]
         mycommand += ['--run_arguments', runargs_filepath]
         mycommand += ['--working_dir', WORKING_DIR]
         return mycommand
-    
+
     # get batch defaults
     batch_defaults_json = file_utils.loadJSON(BATCH_SETTINGS_FILE)
-    
+
     # docker module to be run
     module_name = args_json['module']
-    
+
+    # stop here and return dummy job information for mock runs
+    if 'mock' in args_json and args_json['mock'] == True:
+        print('RETURNING MOCK JSON')
+        mock_json = {'jobid': '5c7edea8-69d1-4c65-9d33-57e01b2e79d8', 'jobqueue': 'batch_scratch_queue_public', 'run_arguments_file': 's3://hubseq-data/modules/rnastar/io/rnastar.6b8cc8af-be08-44dc-8b26-71ad6db8c1b8.io.json', 'joboverrides': {'command': ['--module_name', 'rnastar', '--run_arguments', 's3://hubseq-data/modules/rnastar/io/rnastar.6b8cc8af-be08-44dc-8b26-71ad6db8c1b8.io.json', '--working_dir', '/home']}}
+        return mock_json
+
     # module template
     module_template_file = module_utils.downloadModuleTemplate( module_name, os.getcwd() )
     module_template_json = file_utils.loadJSON(module_template_file)
-    
+
     # unique ID for this job
     unique_id = str(uuid.uuid4())
-    
+
     # convert command-line string of arguments into an IO JSON
     io_json = module_utils.createIOJSON(args_json)
     io_json_name = module_utils.getModuleRunNameID( module_name, unique_id, 'io_json' )
     file_utils.writeJSON( io_json, io_json_name )
     print('ARGS JSON: '+str(args_json))
-    
+
     # upload IO JSON to module directory
     io_json_remote_folder = file_utils.uploadFile(io_json_name, module_utils.getModuleIODirectory( module_name ))
     io_json_remote_full_path = io_json_remote_folder #os.path.join(io_json_remote_folder, io_json_name)
-    
+
     # initialize Batch boto3 client access
     print('\nSetting up boto3 client in {}...'.format(batch_defaults_json['aws_region']))
     client = boto3.client('batch', region_name=batch_defaults_json['aws_region'])
-    
+
     # initialize job jobQueue and dependent IDs
     JOB_QUEUE = args_json['jobqueue'] if 'jobqueue' in args_json and args_json['jobqueue'] != '' else batch_defaults_json['jobqueue']
     DEPENDENT_IDS = createDependentIdList(args_json['dependentid']) if ('dependentid' in args_json and args_json['dependentid'] != None) else []
-    
+
     # set properties for this job
     job_properties = setJobProperties( module_name, batch_defaults_json, module_template_json )
     job_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_name' )
@@ -95,7 +101,7 @@ def run_batchjob( args_json ):
 
     # get the date and time stamp right before we submit job
     job_submission_timestamp = str(datetime.now())
-    
+
     # set input and compute parameters for job submission - save this job submission info
     job_overrides = {'command': setContainerOverrides(batch_defaults_json['working_dir'], module_name, io_json_remote_full_path)}
     job_json = {'container_overrides': job_overrides}
@@ -106,9 +112,9 @@ def run_batchjob( args_json ):
     file_utils.writeJSON( job_json, job_json_name )
     job_json_remote_folder = file_utils.uploadFile(job_json_name, module_utils.getModuleJobDirectory( module_name ))
     job_json_remote_fullpath = os.path.join(job_json_remote_folder, job_json_name)
-    
+
     job_def_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_def' )
-    jobid_final = ''    
+    jobid_final = ''
     if not module_utils.isDryRun( args_json ):
         # register job definition
         job_def_response = client.register_job_definition( jobDefinitionName = job_def_name,
@@ -116,8 +122,8 @@ def run_batchjob( args_json ):
                                                            retryStrategy={'attempts': 3},
                                                            containerProperties=job_properties)
         print('\nRegistering Job Definition: '+str(job_def_name))
-        
-        # submit job                                                                                             
+
+        # submit job
         job_submit_response = client.submit_job( jobName = job_name,
                                                  jobQueue = JOB_QUEUE,
                                                  jobDefinition = job_def_name,
@@ -157,7 +163,10 @@ if __name__ == '__main__':
     file_path_group.add_argument('--alternate_inputs', '-alti', help='alternate input file(s), e.g. my.bed,my.fasta', required=False, default='')
     file_path_group.add_argument('--alternate_outputs', '-alto', help='alterate output file(s)', required=False, default='')
     file_path_group.add_argument('--dryrun', help='dry run only', required=False, action='store_true')
+    file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')    
     file_path_group.add_argument('--dependentid', help='dependent ID for batch job', required=False, default='')
-    file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')    
+    file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')
     runbatchjob_args = argparser.parse_args()
-    run_batchjob( vars(runbatchjob_args) )
+    jobinfo_json = run_batchjob( vars(runbatchjob_args) )
+    print('JOB INFO JSON OUT')
+    print(str(jobinfo_json))
