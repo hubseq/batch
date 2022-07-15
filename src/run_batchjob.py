@@ -15,7 +15,7 @@
 # -outputdir=<OUTPUT_DIRECTORY>
 
 import os, sys, uuid, json, boto3
-sys.path.append('../../global_utils/src/')
+sys.path.append('global_utils/src/')
 import module_utils
 import file_utils
 from argparse import ArgumentParser
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     file_path_group.add_argument('--alternate_inputs', '-alti', help='alternate input file(s), e.g. my.bed,my.fasta', required=False, default='')
     file_path_group.add_argument('--alternate_outputs', '-alto', help='alterate output file(s)', required=False, default='')
     file_path_group.add_argument('--dryrun', help='dry run only', required=False, action='store_true')
-    file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')    
+    file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')
     file_path_group.add_argument('--dependentid', help='dependent ID for batch job', required=False, default='')
     file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')
     runbatchjob_args = argparser.parse_args()
