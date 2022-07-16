@@ -57,6 +57,9 @@ def run_batchjob( args_json ):
         mycommand += ['--working_dir', WORKING_DIR]
         return mycommand
 
+    # scratch directory for temp files in this container
+    scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir']!='' else '/home/'
+        
     # get batch defaults
     batch_defaults_json = file_utils.loadJSON(BATCH_SETTINGS_FILE)
 
@@ -70,7 +73,7 @@ def run_batchjob( args_json ):
         return mock_json
 
     # module template
-    module_template_file = module_utils.downloadModuleTemplate( module_name, os.getcwd() )
+    module_template_file = os.path.join( os.getcwd(), module_name+'.template.json' ) # module_utils.downloadModuleTemplate( module_name, scratch_dir )
     module_template_json = file_utils.loadJSON(module_template_file)
 
     # unique ID for this job
@@ -78,7 +81,7 @@ def run_batchjob( args_json ):
 
     # convert command-line string of arguments into an IO JSON
     io_json = module_utils.createIOJSON(args_json)
-    io_json_name = module_utils.getModuleRunNameID( module_name, unique_id, 'io_json' )
+    io_json_name = os.path.join( scratch_dir, module_utils.getModuleRunNameID( module_name, unique_id, 'io_json' ))
     file_utils.writeJSON( io_json, io_json_name )
     print('ARGS JSON: '+str(args_json))
 
@@ -108,7 +111,7 @@ def run_batchjob( args_json ):
     job_json['jobqueue'] = JOB_QUEUE
     job_json['jobname'] = job_name
     job_json['job_submission_timestamp'] = job_submission_timestamp
-    job_json_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_json' )
+    job_json_name = os.path.join( scratch_dir, module_utils.getModuleRunNameID( module_name, unique_id, 'job_json' ))
     file_utils.writeJSON( job_json, job_json_name )
     job_json_remote_folder = file_utils.uploadFile(job_json_name, module_utils.getModuleJobDirectory( module_name ))
     job_json_remote_fullpath = os.path.join(job_json_remote_folder, job_json_name)
@@ -166,6 +169,7 @@ if __name__ == '__main__':
     file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')
     file_path_group.add_argument('--dependentid', help='dependent ID for batch job', required=False, default='')
     file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')
+    file_path_group.add_argument('--scratchdir', help='scratch directory for storing temp files', required=False, default='/home/')
     runbatchjob_args = argparser.parse_args()
     jobinfo_json = run_batchjob( vars(runbatchjob_args) )
     print('JOB INFO JSON OUT')

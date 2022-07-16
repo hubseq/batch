@@ -176,7 +176,7 @@ def run_pipeline( args_json ):
         return dep_ids
 
     def createInputJSON( module, sampleid, input_files, output_files, alt_input_files, alt_output_files, \
-                         module_args, dependent_ids, jobqueue, isdryrun ):
+                         module_args, dependent_ids, jobqueue, isdryrun, scratch_dir ):
         """ Given sample, I/O, module and job dependency information, create JSON to submit to run batch job
         """
         input_json = {}
@@ -184,6 +184,7 @@ def run_pipeline( args_json ):
         input_json["sampleid"] = sampleid
         input_json["input"] = ','.join(input_files) if type(input_files)==type([]) else input_files
         input_json["output"] = ','.join(output_files) if type(output_files)==type([]) else output_files
+        input_json["scratchdir"] = scratch_dir
         if alt_input_files != '' and alt_input_files != []:
             input_json["alternate_inputs"] = alt_input_files
         if alt_output_files != '' and alt_output_files != []:
@@ -214,7 +215,8 @@ def run_pipeline( args_json ):
     alt_output_list = parseStringList(args_json['altoutputs']) if ('altoutputs' in args_json and args_json['altoutputs'] not in ['', []]) else ['']*len(module_list)
     jobQueue = args_json['jobqueue'] if 'jobqueue' in args_json else ''
     isDryRun = True if ('dryrun' in args_json and args_json['dryrun'] == True) else False
-
+    scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir'] != '' else '/home/'
+    
     # initial input files REQUIRED - these will feed into first module. Has format {'sampleid': [files],...}
     datafiles_list_by_group = file_utils.groupInputFilesBySample(str(args_json['input']).split(','))
 
@@ -264,7 +266,7 @@ def run_pipeline( args_json ):
             alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid})
             alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid})
             # get module template file
-            module_template_file = module_utils.downloadModuleTemplate( module, os.getcwd() )
+            module_template_file = os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
             # input_files of this docker are the output files of the previous docker
             input_files = getPreviousOutput( base_output_dir, module, prev_module, sid, sids_all, pipeline_dict )
             if input_files == []:
@@ -280,7 +282,7 @@ def run_pipeline( args_json ):
             job_input_json = createInputJSON( module, sid, input_files, module_output, \
                                               alti, alto, moduleargs, \
                                               getDependentIDs( module, prev_module, sid, dependency_dict, pipeline_dict), \
-                                              jobQueue, isDryRun )
+                                              jobQueue, isDryRun, scratch_dir )
             print('JOB_INPUT_JSON: '+str(job_input_json))
 
             # call runbatchjob()
@@ -316,6 +318,7 @@ if __name__ == '__main__':
     file_path_group.add_argument('--dryrun', help='dry run only', required=False, action='store_true')
     file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')
     file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')
+    file_path_group.add_argument('--scratchdir', help='scratch directory for storing temp files', required=False, default='/home/')
     runpipeline_args = argparser.parse_args()
     p_out = run_pipeline( vars(runpipeline_args) )
     print('JOB IDS and DEPENDENCIES out: ')
