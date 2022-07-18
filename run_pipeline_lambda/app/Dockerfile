@@ -10,6 +10,7 @@ COPY src/global_utils/src/global_keys.py ${LAMBDA_TASK_ROOT}
 COPY src/global_utils/src/file_utils.py ${LAMBDA_TASK_ROOT}
 COPY src/global_utils/src/aws_s3_utils.py ${LAMBDA_TASK_ROOT}
 COPY src/global_utils/src/module_utils.py ${LAMBDA_TASK_ROOT}
+COPY src/global_utils/src/lambda_utils.py ${LAMBDA_TASK_ROOT}
 COPY src/batch.settings.json ${LAMBDA_TASK_ROOT}
 
 # Install the function's dependencies using file requirements.txt
