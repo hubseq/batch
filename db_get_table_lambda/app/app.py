@@ -16,9 +16,9 @@ def lambda_handler(event, context):
     
     json_out = aws_s3_utils.get_json_object('s3://hubseq-db/{}/{}.json'.format(input_json['teamid'], input_json['table']))
     
-    message = 'Hello from Lambda! Get table. Jerry is here. Here was the call: {}. Here are the table rows: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+    # message = 'Hello from Lambda! Get table. Jerry is here. Here was the call: {}. Here are the table rows: {}'.format(str(input_json), str(json_out))
+    # print(message)    
+    message_response = json.dumps({'data': json_out})
     
     response_obj = {}
     response_obj['statusCode'] = 200
