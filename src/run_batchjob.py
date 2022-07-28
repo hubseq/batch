@@ -27,7 +27,7 @@ BATCH_SETTINGS_FILE = os.path.join(SCRIPT_DIR, 'batch.settings.json')
 
 def setJobProperties( module_name, batch_defaults_json, module_template_json):
     job_properties = {}
-    job_properties['image'] = batch_defaults_json['ecr_registry'] + '/' + str(module_name) + ':' + str(module_template_json['module_version'])
+    job_properties['image'] = batch_defaults_json['ecr_registry'] + '/' + str(module_name) + ':' + 'latest' # str(module_template_json['module_version'])
     job_properties['vcpus'] = int(module_template_json['compute']['vcpus']) \
                                   if 'compute' in module_template_json and 'vcpus' in module_template_json['compute'] \
                                   else int(batch_defaults_json['vcpus'])
