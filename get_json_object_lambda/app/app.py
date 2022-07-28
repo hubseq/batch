@@ -12,10 +12,9 @@ def lambda_handler(event, context):
     event_body = json.loads(event['body'])
     input_json['objects'] = lambda_utils.getParameter( event_body, 'objects', '' )
     json_out = aws_s3_utils.get_json_object(input_json['objects'])
-    
-    message = 'Hello from Lambda! Get metadata. Jerry is here. Here was the call: {}. Here is the metadata: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+
+    # get json object back
+    message_response = json.dumps({'data': json_out})
     
     response_obj = {}
     response_obj['statusCode'] = 200

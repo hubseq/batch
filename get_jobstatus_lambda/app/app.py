@@ -1,6 +1,7 @@
 import json
 import get_jobstatus
 import lambda_utils
+import aws_s3_utils
 
 def lambda_handler(event, context):
 
@@ -27,10 +28,8 @@ def lambda_handler(event, context):
             input_json[param] = lambda_utils.getParameter( event_body, param, '' )
     
     json_out = get_jobstatus.get_jobstatus(input_json)
-    
-    message = 'Hello from Lambda! Get job status. Jerry is here. Here was the call: {}. Here are job responses: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+
+    message_response = json.dumps(json_out, default=aws_s3_utils.dateConverter)
     
     response_obj = {}
     response_obj['statusCode'] = 200

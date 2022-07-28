@@ -5,7 +5,7 @@ import lambda_utils
 def lambda_handler(event, context):
 
     input_json = {}
-    event_body = json.loads(event_body)
+    event_body = json.loads(event['body'])
     input_json['pipeline'] = lambda_utils.getParameter( event_body, 'pipeline', 'rnaseq:mouse' )
     input_json['teamid'] = lambda_utils.getParameter( event_body, 'teamid', 'test' )
     input_json['userid'] = lambda_utils.getParameter( event_body, 'userid', 'test' )
@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     input_json['scratchdir'] = lambda_utils.getParameter( event_body, 'scratchdir', '/tmp/' )
 
     # include optional parameters in batch job call, if present
-    optional_params = ['runid', 'moduleargs', 'altinputs', 'altoutputs', 'jobqueue', 'output']
+    optional_params = ['runid', 'moduleargs', 'altinputs', 'altoutputs', 'jobqueue', 'output', 'mock', 'dryrun']
     
     for param in optional_params:
         if param in event_body:
@@ -40,10 +40,12 @@ def lambda_handler(event, context):
     # input_json['dryrun'] = True
     
     json_out = run_pipeline.run_pipeline(input_json)
-    
-    message = 'Hello from Lambda! Jerry is here. Here is the input JSON: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+
+    # return job iDs
+    message_response = json.dumps({'data': json_out})
+    # message = 'Hello from Lambda! Jerry is here. Here is the input JSON: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
+    # message_response = json.dumps({'message': message})
+    # print(message)
     
     response_obj = {}
     response_obj['statusCode'] = 200

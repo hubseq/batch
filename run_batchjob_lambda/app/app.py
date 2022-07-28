@@ -38,10 +38,11 @@ def lambda_handler(event, context):
     # input_json['dryrun'] = True
     
     json_out = run_batchjob.run_batchjob(input_json)
-    
-    message = 'Hello from Lambda! Run job. Jerry is here. Here was the call: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+
+    message_response = json.dumps({'data': json_out})
+    # message = 'Hello from Lambda! Run job. Jerry is here. Here was the call: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
+    # message_response = json.dumps({'message': message})
+    # print(message)
     
     response_obj = {}
     response_obj['statusCode'] = 200

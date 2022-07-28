@@ -214,7 +214,7 @@ def run_pipeline( args_json ):
     alt_input_list = parseStringList(args_json['altinputs']) if ('altinputs' in args_json and args_json['altinputs'] not in ['', []]) else ['']*len(module_list)
     alt_output_list = parseStringList(args_json['altoutputs']) if ('altoutputs' in args_json and args_json['altoutputs'] not in ['', []]) else ['']*len(module_list)
     jobQueue = args_json['jobqueue'] if 'jobqueue' in args_json else ''
-    isDryRun = True if ('dryrun' in args_json and args_json['dryrun'] == True) else False
+    isDryRun = True if ('dryrun' in args_json and (args_json['dryrun'] == True or str(args_json['dryrun']).upper()[0]=='T')) else False
     scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir'] != '' else '/home/'
     
     # initial input files REQUIRED - these will feed into first module. Has format {'sampleid': [files],...}
@@ -233,7 +233,7 @@ def run_pipeline( args_json ):
     print('job queue: '+str(jobQueue))
 
     # if this is a mock run, output parameters with a mock dependencies list, and return
-    if 'mock' in args_json and args_json['mock'] == True:
+    if 'mock' in args_json and (args_json['mock'] == True or str(args_json['mock']).upper()[0] == 'T'):
         print('MOCK RUN')
         mock_return_dict = {'fastqc': {'rnaseq_mouse_test_tiny1': {'job_id': '86126ddd-7ccf-403c-a1fe-633b5b99adad'}, 'rnaseq_mouse_test_tiny2': {'job_id': '188bc937-fa0d-4b5d-af9c-9f80c6310104'}, 'rnaseq_mouse_test_tiny4': {'job_id': '36244988-bca9-4a0e-af23-240f4ea4b320'}, 'rnaseq_mouse_test_tiny5': {'job_id': '418e2b6c-ab55-41fb-8674-7b71e26a6433'}}, 'rnastar': {'rnaseq_mouse_test_tiny1': {'job_id': '5c7edea8-69d1-4c65-9d33-57e01b2e79d8'}, 'rnaseq_mouse_test_tiny2': {'job_id': '164496e7-9269-4921-ba88-ded8faa27531'}, 'rnaseq_mouse_test_tiny4': {'job_id': '8579109c-41c6-46fc-b6c2-a0df7f7e0db2'}, 'rnaseq_mouse_test_tiny5': {'job_id': '1ac19773-46aa-465d-9c1e-076b20de2ca4'}}, 'expressionqc': {'test-20220714-1722_combined': {'job_id': 'e9c61818-bdec-4dc0-809b-95559396b515'}}, 'deseq2': {'test-20220714-1722_combined': {'job_id': '6a0b6d7f-d346-4fb5-aeaf-049a3e9c56cd'}}, 'deqc': {'test-20220714-1722_combined': {'job_id': '652d8bc8-8794-4aca-a1a6-cb1fd291a4fe'}}, 'david_go': {'test-20220714-1722_combined': {'job_id': 'ff8c849f-fdd8-4965-bd99-62be112a02bb'}}, 'goqc': {'test-20220714-1722_combined': {'job_id': '3c8621bb-2676-4282-b94d-3a7c51d3ccfd'}}}
         return mock_return_dict

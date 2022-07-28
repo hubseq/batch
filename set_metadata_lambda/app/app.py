@@ -15,10 +15,9 @@ def lambda_handler(event, context):
     input_json['tags'] = lambda_utils.getParameter( event_body, 'tags', None )
     if input_json['tags'] != None:
         json_out = aws_s3_utils.set_metadata(input_json['objects'], input_json['tags'])
-    
-    message = 'Hello from Lambda! Get metadata. Jerry is here. Here was the call: {}. Here is the metadata: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+
+    # return updated tags
+    message_response = json.dumps({'data': json_out})
     
     response_obj = {}
     response_obj['statusCode'] = 200
