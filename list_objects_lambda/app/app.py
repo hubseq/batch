@@ -11,11 +11,12 @@ def lambda_handler(event, context):
     input_json = {}
     event_body = json.loads(event['body'])
     input_json['path'] = lambda_utils.getParameter( event_body, 'path', '' )
-    json_out = aws_s3_utils.list_objects(input_json['path'])
+    input_json['searchpattern'] = lambda_utils.getParameter( event_body, 'searchpattern', '' )
+    json_out = aws_s3_utils.list_objects(input_json['path'], input_json['searchpattern'])
     
-    message = 'Hello from Lambda! List ojbects at path. Jerry is here. Here was the call: {}. Here are the objects: {}'.format(str(input_json), str(json_out))
-    message_response = json.dumps({'message': message})
-    print(message)
+    message_response = json.dumps(json_out, default=aws_s3_utils.dateConverter)
+    # message = 'Hello from Lambda! List ojbects at path. Jerry is here. Here was the call: {}. Here are the objects: {}'.format(str(input_json), str(json_out))
+    # message_response = json.dumps(json_out)
     
     response_obj = {}
     response_obj['statusCode'] = 200
