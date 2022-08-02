@@ -42,6 +42,9 @@ def setJobProperties( module_name, batch_defaults_json, module_template_json):
 
 def run_batchjob( args_json ):
 
+    def getCommandArg( args_dict, _arg, _default ):        
+        return args_dict[_arg] if _arg in args_dict and args_dict[_arg] not in ['',[], None] else _default
+
     def createDependentIdList( jobid_list ):
         jobid_list_final=[]
         jobid_list = jobid_list.split(',') if type(args_json['dependentid']) == str else jobid_list
@@ -49,7 +52,7 @@ def run_batchjob( args_json ):
             if jobid != '':
                 jobid_list_final.append({'jobId': jobid})
         return jobid_list_final
-
+    
     def setContainerOverrides( WORKING_DIR, module_name, runargs_filepath ):
         mycommand = []
         mycommand += ['--module_name', module_name]
@@ -58,14 +61,15 @@ def run_batchjob( args_json ):
         return mycommand
 
     # scratch directory for temp files in this container
-    scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir']!='' else '/home/'
+    scratch_dir = getCommandArg( args_json, 'scratchdir', '/home/' )
         
     # get batch defaults
     batch_defaults_json = file_utils.loadJSON(BATCH_SETTINGS_FILE)
 
     # docker module to be run
     module_name = args_json['module']
-
+    submodule_name = getCommandArg( args_json, 'program_subname', '' )
+    
     # stop here and return dummy job information for mock runs
     if 'mock' in args_json and args_json['mock'] == True:
         print('RETURNING MOCK JSON')
@@ -73,12 +77,12 @@ def run_batchjob( args_json ):
         return mock_json
 
     # module template
-    module_template_file = os.path.join( os.getcwd(), module_name+'.template.json' ) # module_utils.downloadModuleTemplate( module_name, scratch_dir )
+    module_template_file = module_utils.downloadModuleTemplate( module_name, scratch_dir, submodule_name, 'local' ) # os.path.join( os.getcwd(), module_name+'.template.json' )
     module_template_json = file_utils.loadJSON(module_template_file)
 
     # unique ID for this job
     unique_id = str(uuid.uuid4())
-
+    
     # convert command-line string of arguments into an IO JSON
     io_json = module_utils.createIOJSON(args_json)
     io_json_name = os.path.join( scratch_dir, module_utils.getModuleRunNameID( module_name, unique_id, 'io_json' ))
@@ -94,9 +98,9 @@ def run_batchjob( args_json ):
     client = boto3.client('batch', region_name=batch_defaults_json['aws_region'])
 
     # initialize job jobQueue and dependent IDs
-    JOB_QUEUE = args_json['jobqueue'] if 'jobqueue' in args_json and args_json['jobqueue'] != '' else batch_defaults_json['jobqueue']
-    DEPENDENT_IDS = createDependentIdList(args_json['dependentid']) if ('dependentid' in args_json and args_json['dependentid'] != None) else []
-
+    JOB_QUEUE = getCommandArg( args_json, 'jobqueue', batch_defaults_json['jobqueue'] )
+    DEPENDENT_IDS = createDependentIdList( getCommandArg(args_json, 'dependentid', []))
+    
     # set properties for this job
     job_properties = setJobProperties( module_name, batch_defaults_json, module_template_json )
     job_name = module_utils.getModuleRunNameID( module_name, unique_id, 'job_name' )
