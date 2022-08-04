@@ -18,11 +18,11 @@ def lambda_handler(event, context):
     
     # message = 'Hello from Lambda! Get table. Jerry is here. Here was the call: {}. Here are the table rows: {}'.format(str(input_json), str(json_out))
     # print(message)    
-    message_response = json.dumps({'data': json_out})
+    message_response = json.dumps(json_out)
     
     response_obj = {}
     response_obj['statusCode'] = 200
-    response_obj['headers'] = {'Access-Control-Allow-Origin': '*'}
+    response_obj['headers'] = {"Access-Control-Allow-Origin": "*"}
     response_obj['headers']['Content-Type'] = 'application/json'
     response_obj['body'] = message_response
     
