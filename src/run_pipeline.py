@@ -4,7 +4,7 @@
 # Runs a pipeline of docker modules.
 #
 # Input arguments:
-# --pipeline <WHICH_PIPELINE_TO_RUN> - e.g., dnaseq_targeted:human,rnaseq:mouse
+# --pipeline <WHICH_PIPELINE_TO_RUN> - e.g., dnaseq_targeted.human,rnaseq.mouse
 # --modules <WHICH_MODULES_TO_RUN> - e.g., fastqc,bwamem_bam,mpileup
 # --input <INITIAL_LIST_OF_INPUT_FILES> - e.g., s3://fastq/R1.fastq,s3://fastq/R2.fastq. Can also specify a directory and file type like, s3://fastq/^fastq
 # --output <BASE_OUTPUT_DIRECTORY> - e.g., s3://bam/
@@ -200,8 +200,8 @@ def run_pipeline( args_json ):
         return input_json
 
     # read pipeline YAML
-    pipeline = args_json['pipeline'].split(':')[0]
-    genome = args_json['pipeline'].split(':')[1] if len(args_json['pipeline'].split(':')) > 1 else 'human'
+    pipeline = args_json['pipeline'].split('.')[0]
+    genome = args_json['pipeline'].split('.')[1] if len(args_json['pipeline'].split('.')) > 1 else 'human'
     pipeline_dict = yaml.safe_load(Path('{}.pipeline.yaml'.format(pipeline)).read_text())
 
     # teamid, userid, runid

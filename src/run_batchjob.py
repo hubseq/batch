@@ -71,7 +71,7 @@ def run_batchjob( args_json ):
     submodule_name = getCommandArg( args_json, 'program_subname', '' )
     
     # stop here and return dummy job information for mock runs
-    if 'mock' in args_json and args_json['mock'] == True:
+    if 'mock' in args_json and (args_json['mock'] == True or (type(args_json['mock'])==type('') and args_json['mock'][0].upper()=='T')):
         print('RETURNING MOCK JSON')
         mock_json = {'jobid': '5c7edea8-69d1-4c65-9d33-57e01b2e79d8', 'jobqueue': 'batch_scratch_queue_public', 'run_arguments_file': 's3://hubseq-data/modules/rnastar/io/rnastar.6b8cc8af-be08-44dc-8b26-71ad6db8c1b8.io.json', 'joboverrides': {'command': ['--module_name', 'rnastar', '--run_arguments', 's3://hubseq-data/modules/rnastar/io/rnastar.6b8cc8af-be08-44dc-8b26-71ad6db8c1b8.io.json', '--working_dir', '/home']}}
         return mock_json
