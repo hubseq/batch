@@ -10,12 +10,14 @@ def lambda_handler(event, context):
     # parse POST body within event object - assume parameters are in 'body' key
     input_json = {}
     event_body = json.loads(event['body'])
+    print("EVENT BODY: "+str(event_body))
     input_json['module'] = lambda_utils.getParameter( event_body, 'module', 'goqc' )
     input_json['input'] = lambda_utils.getParameter( event_body, 'input', 's3://hubseq-data/test/rnaseq/run_test1/david_go/davidgo.goterms.txt' )
     input_json['output'] = lambda_utils.getParameter( event_body, 'output', 's3://hubseq-data/test/rnaseq/run_test1/goqc/')
 
     # for now, instead of throwing an error with missing input parameters, return mock run output. Can have mock run output indicate that parameters are missing.
     if 'module' not in event_body or 'input' not in event_body or 'output' not in event_body:
+        print("sending back mock output")
         input_json['mock'] = True
         input_json['dryrun'] = True
 
@@ -39,14 +41,14 @@ def lambda_handler(event, context):
     
     json_out = run_batchjob.run_batchjob(input_json)
 
-    message_response = json.dumps({'data': json_out})
+    message_response = json.dumps(json_out)
     # message = 'Hello from Lambda! Run job. Jerry is here. Here was the call: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
     # message_response = json.dumps({'message': message})
     # print(message)
     
     response_obj = {}
     response_obj['statusCode'] = 200
-    response_obj['headers'] = {}
+    response_obj['headers'] = {"Access-Control-Allow-Origin": "*"}
     response_obj['headers']['Content-Type'] = 'application/json'
     response_obj['body'] = message_response
     

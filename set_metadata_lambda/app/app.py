@@ -17,7 +17,7 @@ def lambda_handler(event, context):
         json_out = aws_s3_utils.set_metadata(input_json['objects'], input_json['tags'])
 
     # return updated tags
-    message_response = json.dumps({'data': json_out})
+    message_response = json.dumps(json_out)
     
     response_obj = {}
     response_obj['statusCode'] = 200

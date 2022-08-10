@@ -27,29 +27,14 @@ def lambda_handler(event, context):
         if param in event_body:
             input_json[param] = lambda_utils.getParameter( event_body, param, '' )
     
-    # input_json['pipeline'] = "rnaseq:mouse"
-    # input_json['modules'] = "deseq2,deqc,david_go,goqc"
-    # input_json['input'] = "s3://hubtenants/hubseq/test/runs/test-20220714-1633/expressionqc/expressionqc.counts_matrix.column.csv"
-    # input_json['altinputs'] = "'s3://hubtenants/<team_id>/<user_id>/runs/<run_id>/expressionqc/expressionqc.samplegroups.csv','','',''"
-    # input_json['moduleargs'] = "'','-pvaluecolumn pvalue','-cond pvalue<0.5,log2FoldChange>0.5',''"
-    # input_json['teamid'] = "hubseq"
-    # input_json['userid'] = "test"
-    # input_json['runid'] = "test-20220714-1633"
-    # input_json['scratchdir'] = '/tmp/'        
-    # input_json['mock'] = True
-    # input_json['dryrun'] = True
-    
     json_out = run_pipeline.run_pipeline(input_json)
 
     # return job iDs
-    message_response = json.dumps({'data': json_out})
-    # message = 'Hello from Lambda! Jerry is here. Here is the input JSON: {}. Here are job IDs: {}'.format(str(input_json), str(json_out))
-    # message_response = json.dumps({'message': message})
-    # print(message)
+    message_response = json.dumps(json_out)
     
     response_obj = {}
     response_obj['statusCode'] = 200
-    response_obj['headers'] = {}
+    response_obj['headers'] = {"Access-Control-Allow-Origin": "*"}
     response_obj['headers']['Content-Type'] = 'application/json'
     response_obj['body'] = message_response
     

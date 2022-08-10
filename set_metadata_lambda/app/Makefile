@@ -1,5 +1,5 @@
 NAME=lambda_set_metadata
-TAG=00.00.00
+TAG=00.00.02
 
 all: build push
 
