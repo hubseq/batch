@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     
     # include optional parameters in batch job call, if present
     optional_params = ['sampleid', 'program_subname', 'inputdir', 'outputdir', 'pargs', 'alternate_inputs', \
-                       'alternate_outputs', 'dependentid', 'jobqueue']
+                       'alternate_outputs', 'dependentid', 'jobqueue', 'teamid', 'userid']
     
     for param in optional_params:
         if param in event_body:
@@ -35,9 +35,12 @@ def lambda_handler(event, context):
                 input_json[param] = lambda_utils.getS3path_args(lambda_utils.getParameter(event_body, param, ''))
             else:
                 input_json[param] = lambda_utils.getParameter( event_body, param, '' )
-    
+
+    # batch job returns a JSON that includes 'jobid'
     json_out = run_batchjob.run_batchjob(input_json)
 
+    # add new job to database
+    
     message_response = json.dumps(json_out)
     
     response_obj = {}
