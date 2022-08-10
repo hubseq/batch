@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     # parse POST body within event object - assume parameters are in 'body' key
     input_json = {}
     event_body = json.loads(event['body'])
-    input_json['path'] = lambda_utils.getParameter( event_body, 'path', '' )
+    input_json['path'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'path', '' ))
     input_json['searchpattern'] = lambda_utils.getParameter( event_body, 'searchpattern', '' )
     json_out = aws_s3_utils.list_objects(input_json['path'], input_json['searchpattern'])
     

@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     # parse POST body within event object - assume parameters are in 'body' key
     input_json = {}
     event_body = json.loads(event['body'])
-    input_json['objects'] = lambda_utils.getParameter( event_body, 'objects', '' )
+    input_json['objects'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'objects', '' ))
     # tags should be a dictionary
     input_json['tags'] = lambda_utils.getParameter( event_body, 'tags', None )
     if input_json['tags'] != None:

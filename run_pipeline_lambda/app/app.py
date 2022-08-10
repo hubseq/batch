@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     input_json['teamid'] = lambda_utils.getParameter( event_body, 'teamid', 'test' )
     input_json['userid'] = lambda_utils.getParameter( event_body, 'userid', 'test' )
     input_json['modules'] = lambda_utils.getParameter( event_body, 'modules', 'fastqc' )
-    input_json['input'] = lambda_utils.getParameter( event_body, 'input', 's3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz,s3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R2.fastq.gz' )
+    input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', 's3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz,s3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R2.fastq.gz'))
     
     required_params = ['pipeline', 'teamid', 'userid', 'modules', 'input']
     for param in required_params:
@@ -25,7 +25,12 @@ def lambda_handler(event, context):
     
     for param in optional_params:
         if param in event_body:
-            input_json[param] = lambda_utils.getParameter( event_body, param, '' )
+            if param in ['output', 'altinputs', 'altoutputs']:
+                input_json[param] = lambda_utils.getS3path(lambda_utils.getParameter(event_body, param, ''))
+            elif param in ['moduleargs']:
+                input_json[param] = lambda_utils.getS3path_args(lambda_utils.getParameter(event_body, param, ''))
+            else:
+                input_json[param] = lambda_utils.getParameter( event_body, param, '' )
     
     json_out = run_pipeline.run_pipeline(input_json)
 
