@@ -1,6 +1,7 @@
 import json
 import run_batchjob
 import lambda_utils
+import db_utils
 
 def lambda_handler(event, context):
 
@@ -25,7 +26,7 @@ def lambda_handler(event, context):
     
     # include optional parameters in batch job call, if present
     optional_params = ['sampleid', 'program_subname', 'inputdir', 'outputdir', 'pargs', 'alternate_inputs', \
-                       'alternate_outputs', 'dependentid', 'jobqueue', 'teamid', 'userid']
+                       'alternate_outputs', 'dependentid', 'jobqueue', 'teamid', 'userid', 'runid']
     
     for param in optional_params:
         if param in event_body:
@@ -39,7 +40,26 @@ def lambda_handler(event, context):
     # batch job returns a JSON that includes 'jobid'
     json_out = run_batchjob.run_batchjob(input_json)
 
-    # add new job to database
+    # add new job to database - currently doing nothing with DB response
+    new_job = [{"jobid": json_out['jobid'],
+                "module": input_json['module'],
+                "runid": input_json['runid'],
+                "sampleid": input_json['sampleid'],
+                "teamid": input_json['teamid'],
+                "userid": input_json['userid'],
+                "submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
+                "status": "SUBMITTED"}]
+    db_response_jobs = db_utils.db_insert('jobs', new_job)
+    print('DB RESPONSE JOBS: '+str(db_response_jobs))
+    
+    # add new run to database - currently doing nothing w response
+    new_run = [{"runid": input_json['runid'],
+                "teamid": input_json['teamid'],
+                "userid": input_json['userid'],
+                "pipeline_module": input_json['module'],
+                "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00')}]
+    db_response_runs = db_utils.db_insert('runs', new_run)
+    print('DB RESPONSE RUNS: '+str(db_response_runs))
     
     message_response = json.dumps(json_out)
     

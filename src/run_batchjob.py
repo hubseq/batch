@@ -15,6 +15,7 @@
 # -outputdir=<OUTPUT_DIRECTORY>
 # -teamid
 # -userid
+# -runid
 #
 import os, sys, uuid, json, boto3
 sys.path.append('global_utils/src/')
@@ -165,6 +166,7 @@ if __name__ == '__main__':
     file_path_group.add_argument('--program_subname', '-sub', help='subprogram to run. e.g., "mpileup" to run samtools mpileup using samtools module.', required=False, default='')
     file_path_group.add_argument('--teamid', help='team ID for batch jobs', required=False)
     file_path_group.add_argument('--userid', help='user ID for batch jobs', required=False)
+    file_path_group.add_argument('--runid', help='run ID for batch jobs', required=False)
     file_path_group.add_argument('--sampleid', '-sid', help='sample ID', required=False)
     file_path_group.add_argument('--input', '-i', help='input file(s), e.g. my_R1.fastq,my_R2.fastq', required=True)
     file_path_group.add_argument('--output', '-o', help='output file(s)', required=True)
