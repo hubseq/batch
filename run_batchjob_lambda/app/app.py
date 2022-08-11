@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     new_job = [{"jobid": json_out['jobid'],
                 "module": input_json['module'],
                 "runid": input_json['runid'],
-                "sampleid": input_json['sampleid'],
+                "sampleid": lambda_utils.getParameter( event_body, 'sampleid', '' ),
                 "teamid": input_json['teamid'],
                 "userid": input_json['userid'],
                 "submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
