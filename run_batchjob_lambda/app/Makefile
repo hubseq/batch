@@ -1,5 +1,5 @@
 NAME=lambda_run_batchjob
-TAG=00.00.05
+TAG=00.00.06
 
 all: build push
 

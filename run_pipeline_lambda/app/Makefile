@@ -1,5 +1,5 @@
 NAME=lambda_run_pipeline
-TAG=00.00.04
+TAG=00.00.05
 
 all: build push
 

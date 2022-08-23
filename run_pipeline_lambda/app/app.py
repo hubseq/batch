@@ -41,15 +41,16 @@ def lambda_handler(event, context):
                 "teamid": input_json['teamid'],
                 "userid": input_json['userid'],
 		"pipeline_module": input_json['pipeline'],
-                "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00')}]
-    db_response_runs = db_utils.db_insert('runs', new_run)
+                "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
+                "status": "SUBMITTED"}]
+    db_response_runs = db_utils.db_insert(input_json['teamid']+'/runs', new_run)
     print('DB RESPONSE RUNS: '+str(db_response_runs))
     
     # go through each module (job) and record in jobs table (DB)
     new_jobs = []
     for _module in json_out:
         for _sample in json_out[_module]:
-            new_jobid = json_out[_module][_sample]
+            new_jobid = json_out[_module][_sample]['job_id']
             new_jobs.append({"jobid": new_jobid,
                              "module": _module,
 		             "runid": input_json['runid'],
@@ -58,7 +59,7 @@ def lambda_handler(event, context):
 		             "userid": input_json['userid'],
                              "submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
                              "status": "SUBMITTED"})
-    db_response_jobs = db_utils.db_insert('jobs', new_jobs)
+    db_response_jobs = db_utils.db_insert(input_json['teamid']+'/jobs', new_jobs)
     print('DB RESPONSE JOBS: '+str(db_response_jobs))
     
     # return job iDs

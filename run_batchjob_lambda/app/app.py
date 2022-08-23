@@ -36,7 +36,7 @@ def lambda_handler(event, context):
                 input_json[param] = lambda_utils.getS3path_args(lambda_utils.getParameter(event_body, param, ''))
             else:
                 input_json[param] = lambda_utils.getParameter( event_body, param, '' )
-
+    
     # batch job returns a JSON that includes 'jobid'
     json_out = run_batchjob.run_batchjob(input_json)
 
@@ -49,7 +49,7 @@ def lambda_handler(event, context):
                 "userid": input_json['userid'],
                 "submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
                 "status": "SUBMITTED"}]
-    db_response_jobs = db_utils.db_insert('jobs', new_job)
+    db_response_jobs = db_utils.db_insert(input_json['teamid']+'/jobs', new_job)
     print('DB RESPONSE JOBS: '+str(db_response_jobs))
     
     # add new run to database - currently doing nothing w response
@@ -57,8 +57,9 @@ def lambda_handler(event, context):
                 "teamid": input_json['teamid'],
                 "userid": input_json['userid'],
                 "pipeline_module": input_json['module'],
-                "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00')}]
-    db_response_runs = db_utils.db_insert('runs', new_run)
+                "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
+                "status": "SUBMITTED"}]
+    db_response_runs = db_utils.db_insert(input_json['teamid']+'/runs', new_run)
     print('DB RESPONSE RUNS: '+str(db_response_runs))
     
     message_response = json.dumps(json_out)
