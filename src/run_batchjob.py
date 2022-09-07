@@ -46,8 +46,8 @@ def setJobProperties( module_name, batch_defaults_json, module_template_json):
 def run_batchjob( args_json ):
 
     def getCommandArg( args_dict, _arg, _default ):        
-        return args_dict[_arg] if _arg in args_dict and args_dict[_arg] not in ['',[], None] else _default
-
+        return args_dict[_arg] if _arg in args_dict and args_dict[_arg] not in ['',[], None, [''], [""]] else _default
+    
     def createDependentIdList( jobid_list ):
         jobid_list_final=[]
         jobid_list = jobid_list.split(',') if type(getCommandArg(args_json, 'dependentid', []))==str else jobid_list
@@ -148,7 +148,7 @@ def run_batchjob( args_json ):
         print('\nDRY RUN: nothing formally submitted to Batch.')
 
     return_json={'jobid': jobid_final, 'jobqueue': JOB_QUEUE, 'run_arguments_file': io_json_remote_full_path, \
-                 'joboverrides': job_overrides}
+                 'joboverrides': job_overrides, 'sampleid': io_json['sample_id'] if 'sample_id' in io_json else ''}
     print(str(return_json))
     print('\n<======================================================>\n')
     return return_json

@@ -12,9 +12,9 @@ def lambda_handler(event, context):
     response_obj = {}
     event_body = json.loads(event['body'])
     # make sure teamid matches the bucket requested - otherwise, forbidden
-    team_id = event['requestContext']['authorizer']['claims']['custom:teamid']
-    if 'objects' in event_body and event_body['objects'].startswith(team_id):
-        input_json['objects'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'objects', '' ))
+    team_id = event['requestContext']['authorizer']['claims']['custom:teamid'] if 'requestContext' in event and 'authorizer' in event['requestContext'] and 'claims' in event['requestContext']['authorizer'] and 'custom:teamid' in event['requestContext']['authorizer']['claims'] and 'teamid' not in event_body else ''
+    if 'objects' in event_body and team_id != '':
+        input_json['objects'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'objects', '' ), team_id, '')
         # input_json['scratchdir'] = lambda_utils.getParameter( event_body, 'scratchdir', '/tmp/' )
         json_out = aws_s3_utils.get_metadata(input_json['objects'])
 

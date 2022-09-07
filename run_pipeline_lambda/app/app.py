@@ -5,16 +5,21 @@ import db_utils
 
 def lambda_handler(event, context):
 
-    input_json = {}
     event_body = json.loads(event['body'])
+
+    # get team id and user id from context
+    team_id = event['requestContext']['authorizer']['claims']['custom:teamid'] if 'requestContext' in event and 'authorizer' in event['requestContext'] and 'claims' in event['requestContext']['authorizer'] and 'custom:teamid' in event['requestContext']['authorizer']['claims'] and 'teamid' not in event_body else ''
+    user_id = event['requestContext']['authorizer']['claims']['custom:userid'] if 'requestContext' in event and 'authorizer' in event['requestContext'] and 'claims' in event['requestContext']['authorizer'] and 'custom:userid' in event['requestContext']['authorizer']['claims'] and 'userid' not in event_body else ''
+    
+    input_json = {}    
     input_json['pipeline'] = lambda_utils.getParameter( event_body, 'pipeline', 'rnaseq:mouse' )
-    input_json['teamid'] = lambda_utils.getParameter( event_body, 'teamid', 'test' )
-    input_json['userid'] = lambda_utils.getParameter( event_body, 'userid', 'test' )
+    input_json['teamid'] = team_id # lambda_utils.getParameter( event_body, 'teamid', 'test' )
+    input_json['userid'] = user_id # lambda_utils.getParameter( event_body, 'userid', 'test' )
     input_json['modules'] = lambda_utils.getParameter( event_body, 'modules', 'fastqc' )
-    input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', 's3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz,s3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R2.fastq.gz'))
+    input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', 's3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz,s3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R2.fastq.gz'), team_id, '', 'true')
     input_json['runid'] = lambda_utils.getParameter( event_body, 'runid', '' )
     
-    required_params = ['pipeline', 'teamid', 'userid', 'modules', 'input', 'runid']
+    required_params = ['pipeline', 'modules', 'input', 'runid']
     for param in required_params:
         if param not in event_body:
             input_json['mock'] = True
@@ -27,23 +32,26 @@ def lambda_handler(event, context):
     
     for param in optional_params:
         if param in event_body:
-            if param in ['output', 'altinputs', 'altoutputs']:
-                input_json[param] = lambda_utils.getS3path(lambda_utils.getParameter(event_body, param, ''))
+            if param in ['output']:
+                input_json[param] = lambda_utils.getS3path(lambda_utils.getParameter(event_body, param, ''), team_id, '', 'true')
+            elif param in ['altinputs', 'altoutputs']:
+                input_json[param] = lambda_utils.getS3path(lambda_utils.getParameter(event_body, param, ''), team_id, '')
             elif param in ['moduleargs']:
-                input_json[param] = lambda_utils.getS3path_args(lambda_utils.getParameter(event_body, param, ''))
+                input_json[param] = lambda_utils.getS3path_args(lambda_utils.getParameter(event_body, param, ''), team_id, '')
             else:
                 input_json[param] = lambda_utils.getParameter( event_body, param, '' )
-    
-    json_out = run_pipeline.run_pipeline(input_json)
 
+    # run pipeline
+    json_out = run_pipeline.run_pipeline(input_json)
+    
     # add new run to database - currently doing nothing w response
     new_run = [{"runid": input_json['runid'],
-                "teamid": input_json['teamid'],
-                "userid": input_json['userid'],
+                "teamid": team_id,
+                "userid": user_id,
 		"pipeline_module": input_json['pipeline'],
                 "date_submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
                 "status": "SUBMITTED"}]
-    db_response_runs = db_utils.db_insert(input_json['teamid']+'/runs', new_run)
+    db_response_runs = db_utils.db_insert(team_id+'/runs', new_run)
     print('DB RESPONSE RUNS: '+str(db_response_runs))
     
     # go through each module (job) and record in jobs table (DB)
@@ -55,11 +63,11 @@ def lambda_handler(event, context):
                              "module": _module,
 		             "runid": input_json['runid'],
                              "sampleid": _sample,
-                             "teamid": input_json['teamid'],
-		             "userid": input_json['userid'],
+                             "teamid": team_id,
+		             "userid": user_id,
                              "submitted": lambda_utils.getParameter( event_body, 'submitted', '2022-06-07 08:30:00'),
                              "status": "SUBMITTED"})
-    db_response_jobs = db_utils.db_insert(input_json['teamid']+'/jobs', new_jobs)
+    db_response_jobs = db_utils.db_insert(team_id+'/jobs', new_jobs)
     print('DB RESPONSE JOBS: '+str(db_response_jobs))
     
     # return job iDs

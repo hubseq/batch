@@ -11,9 +11,9 @@ def lambda_handler(event, context):
     input_json = {}
     response_obj = {}
     event_body = json.loads(event['body'])
-    team_id = event['requestContext']['authorizer']['claims']['custom:teamid']
-    if 'objects' in event_body and event_body['objects'].startswith(team_id):    
-        input_json['objects'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'objects', '' ))
+    team_id = event['requestContext']['authorizer']['claims']['custom:teamid'] if 'requestContext' in event and 'authorizer' in event['requestContext'] and 'claims' in event['requestContext']['authorizer'] and 'custom:teamid' in event['requestContext']['authorizer']['claims'] and 'teamid' not in event_body else ''
+    if 'objects' in event_body and team_id != '':
+        input_json['objects'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'objects', '' ), team_id, '')
         # tags should be a dictionary
         input_json['tags'] = lambda_utils.getParameter( event_body, 'tags', None )
         if input_json['tags'] != None:

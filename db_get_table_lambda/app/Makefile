@@ -1,5 +1,5 @@
 NAME=lambda_db_get_table
-TAG=00.00.02
+TAG=00.00.03
 
 all: build push
 

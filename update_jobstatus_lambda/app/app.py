@@ -28,9 +28,13 @@ def lambda_handler(event, context):
     else:
         event_body = json.loads(event['body'])
 
-    team_id = event['requestContext']['authorizer']['claims']['custom:teamid']
-    if 'teamid' in event_body and event_body['teamid']==team_id:
-        input_json['teamid'] = lambda_utils.getParameter( event_body, 'teamid', 'hubseq' )    
+    team_id = event['requestContext']['authorizer']['claims']['custom:teamid'] if 'requestContext' in event and 'authorizer' in event['requestContext'] and 'claims' in event['requestContext']['authorizer'] and 'custom:teamid' in event['requestContext']['authorizer']['claims'] and 'teamid' not in event_body else ''
+    if 'teamid' in event_body:
+        input_json['teamid'] = lambda_utils.getParameter( event_body, 'teamid', '' )
+    else:
+        input_json['teamid'] = team_id
+
+    if input_json['teamid'] != '':
         input_json['scratchdir'] = lambda_utils.getParameter( event_body, 'scratchdir', '/tmp/' )
 
         # first get all job IDs from DB that are not currently finished.

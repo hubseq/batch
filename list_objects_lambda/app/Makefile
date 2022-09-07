@@ -1,5 +1,5 @@
 NAME=lambda_list_objects
-TAG=00.00.04
+TAG=00.00.06
 
 all: build push
 
