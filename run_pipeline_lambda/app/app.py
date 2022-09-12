@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     input_json['teamid'] = team_id # lambda_utils.getParameter( event_body, 'teamid', 'test' )
     input_json['userid'] = user_id # lambda_utils.getParameter( event_body, 'userid', 'test' )
     input_json['modules'] = lambda_utils.getParameter( event_body, 'modules', 'fastqc' )
-    input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', 's3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz,s3://hubtenants/test/rnaseq/run_test1/fastq/rnaseq_mouse_test_tiny1_R2.fastq.gz'), team_id, '', 'true')
+    input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', ''), team_id, '', 'true')
     input_json['runid'] = lambda_utils.getParameter( event_body, 'runid', '' )
     
     required_params = ['pipeline', 'modules', 'input', 'runid']
@@ -42,6 +42,7 @@ def lambda_handler(event, context):
                 input_json[param] = lambda_utils.getParameter( event_body, param, '' )
 
     # run pipeline
+    print('INPUT JSON TO RUN PIPELINE: '+str(input_json))
     json_out = run_pipeline.run_pipeline(input_json)
     
     # add new run to database - currently doing nothing w response

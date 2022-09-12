@@ -1,10 +1,10 @@
 NAME=lambda_run_pipeline
-TAG=00.00.06
+TAG=00.00.07
 
 all: build push
 
 build:
-	docker build -t $(NAME):$(TAG) -f Dockerfile ../../
+	docker build --no-cache -t $(NAME):$(TAG) -f Dockerfile ../../
 	docker tag $(NAME):$(TAG) $(REGISTRY):$(TAG)
 	docker tag $(REGISTRY):$(TAG) $(REGISTRY):latest
 

@@ -24,7 +24,7 @@
 #
 import os, sys, uuid, json, boto3, yaml
 from pathlib import Path
-sys.path.append('../../global_utils/src/')
+sys.path.append('global_utils/src/')
 import module_utils
 import file_utils
 import aws_s3_utils
@@ -221,7 +221,8 @@ def run_pipeline( args_json ):
     datafiles_list_by_group = file_utils.groupInputFilesBySample(str(args_json['input']).split(','))
 
     # base_output dir
-    base_output_dir = args_json['output'].rstrip('/')+'/' if ('output' in args_json and args_json['output'] not in ['',[]]) else 's3://{}/{}/{}/runs/{}/'.format(CLIENT_BASE_DIR, teamid, userid, runid)
+    # base_output_dir = args_json['output'].rstrip('/')+'/' if ('output' in args_json and args_json['output'] not in ['',[]]) else 's3://{}/{}/{}/runs/{}/'.format(CLIENT_BASE_DIR, teamid, userid, runid)
+    base_output_dir = args_json['output'].rstrip('/')+'/' if ('output' in args_json and args_json['output'] not in ['',[]]) else 's3://{}/{}/runs/{}/'.format(CLIENT_BASE_DIR, teamid, runid)
 
     print('BASE OUTPUT DIR '+str(base_output_dir))
     print('PIPELINE DICT: '+str(pipeline_dict))
@@ -263,8 +264,8 @@ def run_pipeline( args_json ):
         # step through each sample and run current module
         for sid in sids:
             # alternate input and output files
-            alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid})
-            alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid})
+            alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_input_list) > i else ''
+            alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_output_list) > i else ''
             # get module template file
             module_template_file = os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
             # input_files of this docker are the output files of the previous docker
@@ -274,7 +275,9 @@ def run_pipeline( args_json ):
             print('CURR MODULE: '+str(module))
             print('PREV MODULE: '+str(prev_module))
             print('INPUT FILES: '+str(input_files))
-
+            print('ALT INPUT FILES: '+str(alti))
+            print('ALT OUTPUT FILES: '+str(alto))
+            
             # set output directory for this module
             module_output = getCurrentOutput( base_output_dir, module, pipeline_dict )
 
