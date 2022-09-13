@@ -1,0 +1,44 @@
+order:
+  - "fastqc"
+  - "rnastar"
+  - "*qorts"
+  - "*qorts_multi"
+  - "rnaseqc"
+  - "rnaseq_summaryqc"
+
+fastqc:
+  input_file: ".fastq.gz, .fastq, .fq.gz, .fq"
+  output: "<sample_id>_fastqc.html"
+  module_type: linear
+
+rnastar:
+  input_file: ".fastq.gz, .fastq, .fq.gz, .fq"
+  output: "<sample_id>.Aligned.sortedByCoord.out.bam"
+  altoutput: "<sample_id>.Log.final.out"
+  previous_module: ""
+  module_type: linear
+  ignore: "_I1., _I2."
+
+qorts:
+  input_file: ".bam"
+  output: "<folder>"
+  previous_module: "rnastar"
+  module_type: linear
+
+qorts_multi:
+  input_file: "<folder>"
+  output: "<folder>"
+  previous_module: "qorts"
+  module_type: merge
+
+rnaseqc:
+  input_file: "<sample_id>.Aligned.sortedByCoord.out.bam"
+  output: "<sample_id>.Aligned.sortedByCoord.out.bam.metrics.tsv"
+  previous_module: "rnastar"
+  module_type: linear
+
+rnaseq_summaryqc:
+  input_file: "<folder>"
+  output: "<folder>"
+  previous_module: "fastqc,rnastar,rnaseqc"
+  module_type: merge

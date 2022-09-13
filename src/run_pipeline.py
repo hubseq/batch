@@ -85,7 +85,7 @@ def run_pipeline( args_json ):
         i = -1
         for j in range(0,len(module_list)):
             # a given step in DAG may allow multiple modules
-            modules = cleanList(module_list[j].split(','), ' ^*')
+            modules = cleanList(module_list[j].split(','), ' ^*~')
             for m in modules:
                 if current_module == m:
                     i = j
@@ -93,22 +93,28 @@ def run_pipeline( args_json ):
         return i
 
     def getPreviousModule( current_module, initial_module, module_list, pipeline_dict ):
-        """ Gets the previous module in DAG workflow.
+        """ Gets the previous module(s) in DAG workflow.
             Example DAG: ['bcl2fastq', '*fastqc', 'rnastar, bwamem', 'expressionqc', 'deseq2']
             Example submitted workflow: ['fastqc', 'rnastar', 'expressionqc']
+
+            Returns list of previous modules
+    
             [TO-DO] Needs some error checking
         """
         dag_modules = pipeline_dict['order']
         i = moduleIndex(current_module, dag_modules)
         start = moduleIndex(initial_module, dag_modules)
         if i != -1 and start != -1:
-            for j in range(start,i)[::-1]:
-                # current modules in search
-                loop_modules = cleanList(dag_modules[j].split(','), ' ')
-                for m in loop_modules:
-                    if m[0] != '*' and moduleIndex(m, module_list) != -1:
-                        return m
-        return ''
+            if 'previous_module' not in pipeline_dict[current_module]:
+                for j in range(start,i)[::-1]:
+                    # current modules in search
+                    loop_modules = cleanList(dag_modules[j].split(','), ' ')
+                    for m in loop_modules:
+                        if m[0] != '*' and moduleIndex(m, module_list) != -1:
+                            return [m]
+            else:
+                return pipeline_dict[current_module]['previous_module'].split(',')
+        return []
 
     def createFilePath( output_base_dir, file_pattern_list, module_type, prev_module_type, sid, sids):
         """ Creates a list of file paths for given module
@@ -123,32 +129,35 @@ def run_pipeline( args_json ):
         if module_type.lower() == 'merge' and prev_module_type.lower() == 'linear':
             for f in file_pattern_list:
                 for s in sids:
-                    outfiles.append(os.path.join(output_base_dir, f.replace('<sample_id>', s)))
+                    outfiles.append(os.path.join(output_base_dir, f.replace('<sample_id>', s).replace('<folder>', '')))
         else:  # module_type = linear
             for f in file_pattern_list:
-                outfiles.append(os.path.join(output_base_dir, f.replace('<sample_id>', sid)))
+                outfiles.append(os.path.join(output_base_dir, f.replace('<sample_id>', sid).replace('<folder>', '')))
         return outfiles
-
-    def getPreviousOutput( base_output_dir, curr_module, prev_module, curr_sid, all_sids, pipeline_dict ):
+    
+    def getPreviousOutput( base_output_dir, curr_module, prev_modules, curr_sid, all_sids, pipeline_dict ):
         """ Gets the previous output files as input files for current module.
             If files not found, then empty list is returned.
         """
-        if prev_module != '':
-            prev_module_output_dir = os.path.join(base_output_dir, prev_module)
-            # lstrip rstrip are to remove spaces in a comma-separated list
-            prev_module_output_file_extensions = list(map(lambda x: x.lstrip(' ').rstrip(' '), \
-                                                          pipeline_dict[curr_module]['input_file'].split(',')))
-            prev_module_ignore_file_patterns = list(map(lambda x: x.lstrip(' ').rstrip(' '), \
-                                                        pipeline_dict[curr_module]['ignore'].split(','))) \
-                                                        if 'ignore' in pipeline_dict[curr_module] \
-                                                        else []
-            for e in prev_module_output_file_extensions:
-                if e != '':
-                    print('listsubfiles args: {} {} {}'.format(str(prev_module_output_dir), str([sid,'^'+e]), str(prev_module_ignore_file_patterns)))
-                    input_files = createFilePath( prev_module_output_dir, cleanList(pipeline_dict[prev_module]['output'].split(','), ' '), pipeline_dict[curr_module]['module_type'], pipeline_dict[prev_module]['module_type'], sid, all_sids)
-                    # input_files = aws_s3_utils.listSubFiles(prev_module_output_dir, [sid,'^'+e], prev_module_ignore_file_patterns)
-                    return input_files
-        return []
+        input_files = []
+        for prev_module in prev_modules:
+            if prev_module != '':                
+                prev_module_output_dir = os.path.join(base_output_dir, prev_module)
+                # lstrip rstrip are to remove spaces in a comma-separated list
+                prev_module_output_file_extensions = list(map(lambda x: x.lstrip(' ').rstrip(' '), \
+                                                              pipeline_dict[curr_module]['input_file'].split(',')))
+                prev_module_ignore_file_patterns = list(map(lambda x: x.lstrip(' ').rstrip(' '), \
+                                                            pipeline_dict[curr_module]['ignore'].split(','))) \
+                                                            if 'ignore' in pipeline_dict[curr_module] \
+                                                               else []
+                for e in prev_module_output_file_extensions:
+                    if e != '' and '<folder>' not in e:
+                        print('listsubfiles args: {} {} {}'.format(str(prev_module_output_dir), str([sid,'^'+e]), str(prev_module_ignore_file_patterns)))
+                        input_files = file_utils.mergeLists( input_files, createFilePath( prev_module_output_dir, cleanList(pipeline_dict[prev_module]['output'].split(','), ' '), pipeline_dict[curr_module]['module_type'], pipeline_dict[prev_module]['module_type'], sid, all_sids) )
+                        # input_files = aws_s3_utils.listSubFiles(prev_module_output_dir, [sid,'^'+e], prev_module_ignore_file_patterns)
+                    else:
+                        input_files.append(prev_module_output_dir.rstrip('/')+'/')
+        return input_files
 
     def getCurrentOutput( base_output_dir, module, pipeline_dict ):
         """ Gets current output files or directory
@@ -156,25 +165,37 @@ def run_pipeline( args_json ):
         module_output_dir = os.path.join( base_output_dir, module ).rstrip('/')+'/'
         return module_output_dir
 
-    def getDependentIDs( curr_module, prev_module, sid, dependency_dict, pipeline_dict):
+    def getDependentIDs( curr_module, prev_modules, sid, dependency_dict, pipeline_dict):
         """ Gets the job IDs that this current job depend on, as a list
             dependency_dict looks like:
             {<module>: {<sample_id>: {'job_id': <job_id>,...}}}
+           [TO-DO] need more error checking with this
         """
-        # TO-DO
         module_type = pipeline_dict[curr_module]['module_type']
         dep_ids = []
-        if prev_module != '':
-            prev_module_type = pipeline_dict[prev_module]['module_type']
-            if module_type == 'merge' and prev_module_type == 'linear':
-                for s in dependency_dict[prev_module].keys():
-                    if 'job_id' in dependency_dict[prev_module][s] and dependency_dict[prev_module][s]['job_id'] != '':
-                        dep_ids.append(dependency_dict[prev_module][s]['job_id'])
-            else: # module_type = linear
-                if 'job_id' in dependency_dict[prev_module][sid] and dependency_dict[prev_module][sid]['job_id'] != '':
-                    dep_ids.append(dependency_dict[prev_module][sid]['job_id'])
+        for prev_module in prev_modules:
+            if prev_module != '':
+                prev_module_type = pipeline_dict[prev_module]['module_type']
+                print('CURRENT  MODULE TYPE: '+str(module_type))
+                print('PREVIOUS MODULE TYPE: '+str(prev_module_type))
+                if module_type == 'merge' and prev_module_type == 'linear':
+                    for s in dependency_dict[prev_module].keys():
+                        if 'job_id' in dependency_dict[prev_module][s] and dependency_dict[prev_module][s]['job_id'] != '':
+                            dep_ids.append(dependency_dict[prev_module][s]['job_id'])
+                else: # module_type = linear
+                    if 'job_id' in dependency_dict[prev_module][sid] and dependency_dict[prev_module][sid]['job_id'] != '':
+                        dep_ids.append(dependency_dict[prev_module][sid]['job_id'])
         return dep_ids
-
+    
+    def getModuleSampleId( dependency_dict, module ):
+        """ Gets sample IDs for the input module
+           [TO-DO] Make this more efficient. Currently looping through lists
+        """
+        samples_out = []
+        if module != '' and module in dependency_dict:
+            samples_out = list(dependency_dict[module].keys())
+        return samples_out
+    
     def createInputJSON( module, sampleid, input_files, output_files, alt_input_files, alt_output_files, \
                          module_args, dependent_ids, jobqueue, isdryrun, scratch_dir ):
         """ Given sample, I/O, module and job dependency information, create JSON to submit to run batch job
@@ -245,35 +266,46 @@ def run_pipeline( args_json ):
     initial_module = module_list[0]
     # list of sample ids
     sids_all = list(datafiles_list_by_group.keys())
-    sids_previous = sids_all
+    sids_previous_initial = sids_all
 
     # now step through and run any modules that appear in the module input list, for each sample
     for i in range(0,len(module_list)):
+        print('ON MODULE....'+str(module_list[i]))
         module = module_list[i]
-        prev_module = getPreviousModule( module, initial_module, module_list, pipeline_dict )
+        prev_modules = getPreviousModule( module, initial_module, module_list, pipeline_dict )  # returns a list of previous modules
         moduleargs = module_args_list[i]
         dependency_dict[module] = {}
-
-        # if we merge multiple samples, then the sample ID changes to become a merged ID
-        if pipeline_dict[module]['module_type'] == 'merge' and \
-             (prev_module in pipeline_dict and pipeline_dict[prev_module]['module_type'] == 'linear'):
-            sids = [runid+'_combined']# [sids_all[0]]  # analysis ID is just the first sample ID
+        sids = []
+        print('PRVEV MODULES...'+str(prev_modules))
+        if prev_modules != []:
+            for prev_module in prev_modules:
+                # if we merge multiple samples, then the sample ID changes to become a merged ID
+                if pipeline_dict[module]['module_type'] == 'merge' and \
+                   (prev_module in pipeline_dict and pipeline_dict[prev_module]['module_type'] == 'linear'):
+                    sids = file_utils.mergeLists( sids, [runid+'_combined'] )  # [sids_all[0]]  # analysis ID is just the first sample ID
+                elif prev_module != '':
+                    sids_previous = getModuleSampleId( dependency_dict, prev_module )
+                    sids = file_utils.mergeLists( sids, sids_previous ) # otherwise the SID is the same as the previous module
+                else:
+                    sids = sids_previous_initial
         else:
-            sids = sids_previous
-
+            sids = sids_previous_initial
+        print('SIDS... '+str(sids))
         # step through each sample and run current module
         for sid in sids:
+            print('ON SAMPLE....'+str(sid))
             # alternate input and output files
             alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_input_list) > i else ''
             alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_output_list) > i else ''
             # get module template file
             module_template_file = os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
             # input_files of this docker are the output files of the previous docker
-            input_files = getPreviousOutput( base_output_dir, module, prev_module, sid, sids_all, pipeline_dict )
+            # NEEDS TO HANDLE MULTIPLE PREV MODULES
+            input_files = getPreviousOutput( base_output_dir, module, prev_modules, sid, sids_all, pipeline_dict )
             if input_files == []:
                 input_files = datafiles_list_by_group[sid]
             print('CURR MODULE: '+str(module))
-            print('PREV MODULE: '+str(prev_module))
+            print('PREV MODULES: '+str(prev_modules))
             print('INPUT FILES: '+str(input_files))
             print('ALT INPUT FILES: '+str(alti))
             print('ALT OUTPUT FILES: '+str(alto))
@@ -282,9 +314,10 @@ def run_pipeline( args_json ):
             module_output = getCurrentOutput( base_output_dir, module, pipeline_dict )
 
             # create JSON for inputs
+            # GETDEPENDENTIDS NEEDS TO HANDLE MULTIPLE MODULES
             job_input_json = createInputJSON( module, sid, input_files, module_output, \
                                               alti, alto, moduleargs, \
-                                              getDependentIDs( module, prev_module, sid, dependency_dict, pipeline_dict), \
+                                              getDependentIDs( module, prev_modules, sid, dependency_dict, pipeline_dict), \
                                               jobQueue, isDryRun, scratch_dir )
             print('JOB_INPUT_JSON: '+str(job_input_json))
 
