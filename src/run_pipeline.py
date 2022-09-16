@@ -186,7 +186,15 @@ def run_pipeline( args_json ):
                     if 'job_id' in dependency_dict[prev_module][sid] and dependency_dict[prev_module][sid]['job_id'] != '':
                         dep_ids.append(dependency_dict[prev_module][sid]['job_id'])
         return dep_ids
-    
+
+    def getSubModule( module, pipeline_dict ):
+        """ Returns subprogram name if specified in the workflow
+        """
+        if module in pipeline_dict and 'submodule' in pipeline_dict[module]:
+            return pipeline_dict[module]['submodule']
+        else:
+            return ''
+        
     def getModuleSampleId( dependency_dict, module ):
         """ Gets sample IDs for the input module
            [TO-DO] Make this more efficient. Currently looping through lists
@@ -197,11 +205,12 @@ def run_pipeline( args_json ):
         return samples_out
     
     def createInputJSON( module, sampleid, input_files, output_files, alt_input_files, alt_output_files, \
-                         module_args, dependent_ids, jobqueue, isdryrun, scratch_dir ):
+                         module_args, dependent_ids, jobqueue, isdryrun, scratch_dir, submodule = '' ):
         """ Given sample, I/O, module and job dependency information, create JSON to submit to run batch job
         """
         input_json = {}
         input_json['module'] = module
+        input_json['program_subname'] = submodule
         input_json["sampleid"] = sampleid
         input_json["input"] = ','.join(input_files) if type(input_files)==type([]) else input_files
         input_json["output"] = ','.join(output_files) if type(output_files)==type([]) else output_files
@@ -272,6 +281,7 @@ def run_pipeline( args_json ):
     for i in range(0,len(module_list)):
         print('ON MODULE....'+str(module_list[i]))
         module = module_list[i]
+        submodule = getSubModule( module, pipeline_dict )
         prev_modules = getPreviousModule( module, initial_module, module_list, pipeline_dict )  # returns a list of previous modules
         moduleargs = module_args_list[i]
         dependency_dict[module] = {}
@@ -298,13 +308,14 @@ def run_pipeline( args_json ):
             alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_input_list) > i else ''
             alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_output_list) > i else ''
             # get module template file
-            module_template_file = os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
+            module_template_file = downloadModuleTemplate( module, scratch_dir, submodule, 'local' ) # os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
             # input_files of this docker are the output files of the previous docker
             # NEEDS TO HANDLE MULTIPLE PREV MODULES
             input_files = getPreviousOutput( base_output_dir, module, prev_modules, sid, sids_all, pipeline_dict )
             if input_files == []:
                 input_files = datafiles_list_by_group[sid]
             print('CURR MODULE: '+str(module))
+            print('SUBMODULE: '+str(submodule))
             print('PREV MODULES: '+str(prev_modules))
             print('INPUT FILES: '+str(input_files))
             print('ALT INPUT FILES: '+str(alti))
@@ -314,11 +325,16 @@ def run_pipeline( args_json ):
             module_output = getCurrentOutput( base_output_dir, module, pipeline_dict )
 
             # create JSON for inputs
-            # GETDEPENDENTIDS NEEDS TO HANDLE MULTIPLE MODULES
-            job_input_json = createInputJSON( module, sid, input_files, module_output, \
-                                              alti, alto, moduleargs, \
-                                              getDependentIDs( module, prev_modules, sid, dependency_dict, pipeline_dict), \
-                                              jobQueue, isDryRun, scratch_dir )
+            if submodule != '':
+                job_input_json = createInputJSON( module, sid, input_files, module_output, \
+                                                  alti, alto, moduleargs, \
+                                                  getDependentIDs( module, prev_modules, sid, dependency_dict, pipeline_dict), \
+                                                  jobQueue, isDryRun, scratch_dir )
+            else:
+                job_input_json = createInputJSON( module, sid, input_files, module_output, \
+                                                  alti, alto, moduleargs, \
+                                                  getDependentIDs( module, prev_modules, sid, dependency_dict, pipeline_dict), \
+                                                  jobQueue, isDryRun, scratch_dir, submodule )                
             print('JOB_INPUT_JSON: '+str(job_input_json))
 
             # call runbatchjob()
