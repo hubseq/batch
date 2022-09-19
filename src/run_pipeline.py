@@ -210,7 +210,7 @@ def run_pipeline( args_json ):
         """
         input_json = {}
         input_json['module'] = module
-        input_json['program_subname'] = submodule
+        input_json['program_subname'] = submodule if submodule not in [[], None] else ''
         input_json["sampleid"] = sampleid
         input_json["input"] = ','.join(input_files) if type(input_files)==type([]) else input_files
         input_json["output"] = ','.join(output_files) if type(output_files)==type([]) else output_files
@@ -325,7 +325,7 @@ def run_pipeline( args_json ):
             module_output = getCurrentOutput( base_output_dir, module, pipeline_dict )
 
             # create JSON for inputs
-            if submodule != '':
+            if submodule in ['', [], None]:
                 job_input_json = createInputJSON( module, sid, input_files, module_output, \
                                                   alti, alto, moduleargs, \
                                                   getDependentIDs( module, prev_modules, sid, dependency_dict, pipeline_dict), \
