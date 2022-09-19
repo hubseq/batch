@@ -72,6 +72,8 @@ def run_batchjob( args_json ):
     # docker module to be run
     module_name = args_json['module']
     submodule_name = getCommandArg( args_json, 'program_subname', '' )
+    if submodule_name in [[], None]:
+        submodule_name = ''
     
     # stop here and return dummy job information for mock runs
     if 'mock' in args_json and (args_json['mock'] == True or (type(args_json['mock'])==type('') and args_json['mock'][0].upper()=='T')):
