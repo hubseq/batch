@@ -150,13 +150,15 @@ def run_pipeline( args_json ):
                                                             pipeline_dict[curr_module]['ignore'].split(','))) \
                                                             if 'ignore' in pipeline_dict[curr_module] \
                                                                else []
+                print('PREV MODULE FILE EXTENSIONS: '+str(prev_module_output_file_extensions))
                 for e in prev_module_output_file_extensions:
                     if e != '' and '<folder>' not in e:
-                        print('listsubfiles args: {} {} {}'.format(str(prev_module_output_dir), str([sid,'^'+e]), str(prev_module_ignore_file_patterns)))
-                        input_files = file_utils.mergeLists( input_files, createFilePath( prev_module_output_dir, cleanList(pipeline_dict[prev_module]['output'].split(','), ' '), pipeline_dict[curr_module]['module_type'], pipeline_dict[prev_module]['module_type'], sid, all_sids) )
+                        print('listsubfiles args: {} {} {}'.format(str(prev_module_output_dir), str([curr_sid,'^'+e]), str(prev_module_ignore_file_patterns)))
+                        input_files = file_utils.mergeLists( input_files, createFilePath( prev_module_output_dir, cleanList(pipeline_dict[prev_module]['output'].split(','), ' '), pipeline_dict[curr_module]['module_type'], pipeline_dict[prev_module]['module_type'], curr_sid, all_sids) )
                         # input_files = aws_s3_utils.listSubFiles(prev_module_output_dir, [sid,'^'+e], prev_module_ignore_file_patterns)
                     else:
-                        input_files.append(prev_module_output_dir.rstrip('/')+'/')
+                        input_files.append( replaceInString(e, {'<sample_id>': curr_sid, '<folder>': prev_module_output_dir}).rstrip('/')+'/' )
+                        # input_files.append(prev_module_output_dir.rstrip('/')+'/')
         return input_files
 
     def getCurrentOutput( base_output_dir, module, pipeline_dict ):

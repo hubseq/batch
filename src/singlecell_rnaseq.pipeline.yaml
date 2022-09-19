@@ -11,7 +11,7 @@ cellranger:
   ignore: "_I1., _I2."
 
 seurat:
-  input_file: "<folder>"
+  input_file: "<folder>/<sample_id>/outs/filtered_feature_bc_matrix"
   output: "<folder>"
   previous_module: "cellranger"
   module_type: linear
