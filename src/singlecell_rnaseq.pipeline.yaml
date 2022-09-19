@@ -1,0 +1,17 @@
+order:
+  - "cellranger"
+  - "seurat"
+
+cellranger:
+  input_file: "<folder>"
+  output: "<folder>"
+  previous_module: ""
+  module_type: linear
+  submodule: count
+  ignore: "_I1., _I2."
+
+seurat:
+  input_file: "<folder>"
+  output: "<folder>"
+  previous_module: "cellranger"
+  module_type: linear

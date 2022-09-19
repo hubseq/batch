@@ -249,7 +249,8 @@ def run_pipeline( args_json ):
     
     # initial input files REQUIRED - these will feed into first module. Has format {'sampleid': [files],...}
     datafiles_list_by_group = file_utils.groupInputFilesBySample(str(args_json['input']).split(','))
-
+    print('DATAFILES LIST BY GROUP: '+str(datafiles_list_by_group))
+    
     # base_output dir
     # base_output_dir = args_json['output'].rstrip('/')+'/' if ('output' in args_json and args_json['output'] not in ['',[]]) else 's3://{}/{}/{}/runs/{}/'.format(CLIENT_BASE_DIR, teamid, userid, runid)
     base_output_dir = args_json['output'].rstrip('/')+'/' if ('output' in args_json and args_json['output'] not in ['',[]]) else 's3://{}/{}/runs/{}/'.format(CLIENT_BASE_DIR, teamid, runid)
@@ -308,7 +309,7 @@ def run_pipeline( args_json ):
             alti = replaceInString(alt_input_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_input_list) > i else ''
             alto = replaceInString(alt_output_list[i], {'<run_id>': runid, '<sample_id>': sid, '<team_id>': teamid, '<user_id>': userid}) if len(alt_output_list) > i else ''
             # get module template file
-            module_template_file = downloadModuleTemplate( module, scratch_dir, submodule, 'local' ) # os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
+            module_template_file = module_utils.downloadModuleTemplate( module, scratch_dir, submodule, 'local' ) # os.path.join( os.getcwd(), module+'.template.json' ) # module_utils.downloadModuleTemplate( module, scratch_dir )
             # input_files of this docker are the output files of the previous docker
             # NEEDS TO HANDLE MULTIPLE PREV MODULES
             input_files = getPreviousOutput( base_output_dir, module, prev_modules, sid, sids_all, pipeline_dict )
