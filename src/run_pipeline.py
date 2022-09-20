@@ -296,7 +296,7 @@ def run_pipeline( args_json ):
                 if pipeline_dict[module]['module_type'] == 'merge' and \
                    (prev_module in pipeline_dict and pipeline_dict[prev_module]['module_type'] == 'linear'):
                     sids = file_utils.mergeLists( sids, [runid+'_combined'] )  # [sids_all[0]]  # analysis ID is just the first sample ID
-                elif prev_module != '':
+                elif prev_module != '' and prev_module != 'cellranger': # [TO-DO] one-off fix for cellranger output
                     sids_previous = getModuleSampleId( dependency_dict, prev_module )
                     sids = file_utils.mergeLists( sids, sids_previous ) # otherwise the SID is the same as the previous module
                 else:
