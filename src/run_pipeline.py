@@ -245,6 +245,7 @@ def run_pipeline( args_json ):
     module_args_list = parseStringList(args_json['moduleargs']) if ('moduleargs' in args_json and args_json['moduleargs'] not in ['', []]) else ['']*len(module_list)
     alt_input_list = parseStringList(args_json['altinputs']) if ('altinputs' in args_json and args_json['altinputs'] not in ['', []]) else ['']*len(module_list)
     alt_output_list = parseStringList(args_json['altoutputs']) if ('altoutputs' in args_json and args_json['altoutputs'] not in ['', []]) else ['']*len(module_list)
+    sampleids_list = args_json['sampleids'].split(',') if ('sampleids' in args_json and args_json['sampleids'] not in ['', []]) else []
     jobQueue = args_json['jobqueue'] if 'jobqueue' in args_json else ''
     isDryRun = True if ('dryrun' in args_json and (args_json['dryrun'] == True or str(args_json['dryrun']).upper()[0]=='T')) else False
     scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir'] != '' else '/home/'
@@ -278,8 +279,8 @@ def run_pipeline( args_json ):
     initial_module = module_list[0]
     # list of sample ids
     sids_all = list(datafiles_list_by_group.keys())
-    sids_previous_initial = sids_all
-
+    sids_previous_initial = sids_all if sampleids_list not in [[],''] else sampleids_list
+    
     # now step through and run any modules that appear in the module input list, for each sample
     for i in range(0,len(module_list)):
         print('ON MODULE....'+str(module_list[i]))
@@ -370,6 +371,7 @@ if __name__ == '__main__':
     file_path_group.add_argument('--moduleargs', '-ma', type=list, help='list of program args for each module, in quotes - e.g., "","-t S","",... - LIST SAME SIZE as --modules. Cannot contain file paths', required=False, default='')
     file_path_group.add_argument('--altinputs', '-alti', type=list, help='alternate input file(s) for each module, e.g., "","s3://fasta/hg38.fasta","",... LIST SAME SIZE AS --modules. ', required=False, default='')
     file_path_group.add_argument('--altoutputs', '-alto', type=list, help='alterate output file(s) for each module', required=False, default='')
+    file_path_group.add_argument('--sampleids', help='sample IDs for input files', required=False, default=[])
     file_path_group.add_argument('--dryrun', help='dry run only', required=False, action='store_true')
     file_path_group.add_argument('--jobqueue', help='queue to submit batch job', required=False, default='')
     file_path_group.add_argument('--mock', help='mock run only', required=False, action='store_true')
