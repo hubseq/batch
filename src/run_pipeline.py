@@ -251,7 +251,7 @@ def run_pipeline( args_json ):
     scratch_dir = args_json['scratchdir'] if 'scratchdir' in args_json and args_json['scratchdir'] != '' else '/home/'
     
     # initial input files REQUIRED - these will feed into first module. Has format {'sampleid': [files],...}
-    datafiles_list_by_group = file_utils.groupInputFilesBySample(str(args_json['input']).split(','))
+    datafiles_list_by_group = file_utils.groupInputFilesBySample(str(args_json['input']).split(','), sampleids_list)
     print('DATAFILES LIST BY GROUP: '+str(datafiles_list_by_group))
     
     # base_output dir
