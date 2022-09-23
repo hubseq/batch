@@ -279,7 +279,7 @@ def run_pipeline( args_json ):
     initial_module = module_list[0]
     # list of sample ids
     sids_all = list(datafiles_list_by_group.keys())
-    sids_previous_initial = sids_all if sampleids_list not in [[],''] else sampleids_list
+    sids_previous_initial = sids_all # if sampleids_list not in [[],''] else sampleids_list
     
     # now step through and run any modules that appear in the module input list, for each sample
     for i in range(0,len(module_list)):

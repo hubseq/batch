@@ -5,6 +5,9 @@ COPY run_pipeline_lambda/app/app.py ${LAMBDA_TASK_ROOT}
 COPY src/run_pipeline.py ${LAMBDA_TASK_ROOT}
 COPY src/run_batchjob.py ${LAMBDA_TASK_ROOT}
 COPY src/rnaseq.pipeline.yaml ${LAMBDA_TASK_ROOT}
+COPY src/rnaseqqc.pipeline.yaml ${LAMBDA_TASK_ROOT}
+COPY src/singlecell_rnaseq.pipeline.yaml ${LAMBDA_TASK_ROOT}
+COPY src/singlecell_rnaseq_qc.pipeline.yaml ${LAMBDA_TASK_ROOT}
 COPY src/*.template.json ${LAMBDA_TASK_ROOT}/
 COPY src/global_utils/src/global_keys.py ${LAMBDA_TASK_ROOT}
 COPY src/global_utils/src/file_utils.py ${LAMBDA_TASK_ROOT}

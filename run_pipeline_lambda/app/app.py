@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     input_json['modules'] = lambda_utils.getParameter( event_body, 'modules', 'fastqc' )
     input_json['input'] = lambda_utils.getS3path(lambda_utils.getParameter( event_body, 'input', ''), team_id, '', 'true')
     input_json['runid'] = lambda_utils.getParameter( event_body, 'runid', '' )
-    
+
     required_params = ['pipeline', 'modules', 'input', 'runid']
     for param in required_params:
         if param not in event_body:
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
     input_json['scratchdir'] = lambda_utils.getParameter( event_body, 'scratchdir', '/tmp/' )
 
     # include optional parameters in batch job call, if present
-    optional_params = ['moduleargs', 'altinputs', 'altoutputs', 'jobqueue', 'output', 'mock', 'dryrun']
+    optional_params = ['moduleargs', 'altinputs', 'altoutputs', 'jobqueue', 'output', 'mock', 'dryrun', 'sampleids']
     
     for param in optional_params:
         if param in event_body:
