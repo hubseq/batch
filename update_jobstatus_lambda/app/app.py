@@ -56,7 +56,7 @@ def lambda_handler(event, context):
                 runids_all[job_json['runid']][job_json['jobid']] = job_json['status']
     
         # now get the updated job status for these jobs
-        json_out = get_jobstatus.get_jobstatus({"jobs": jobs_to_update.rstrip(',')})
+        json_out = get_jobstatus.get_jobstatus({"jobs": jobs_to_update.rstrip(',')}) if jobs_to_update!='' else {"jobs": {}}
         print('JOB STATUS JSON OUT: '+str(json_out))
         jobs2replace = []
         status2replace = []
@@ -77,10 +77,12 @@ def lambda_handler(event, context):
             runstatus2replace.append({"status": combinedRunStatus( list(runids_all[_runid].values()) )})
     
         # and do a replacement - hopefully this doesn't screw up
-        aws_s3_utils.edit_json_object('s3://hubseq-db/{}/jobs.json'.format(input_json['teamid']), jobs2replace, status2replace)
+        if jobs2replace != []:
+            aws_s3_utils.edit_json_object('s3://hubseq-db/{}/jobs.json'.format(input_json['teamid']), jobs2replace, status2replace)
     
         # update all run statuses as well
-        aws_s3_utils.edit_json_object('s3://hubseq-db/{}/runs.json'.format(input_json['teamid']), runs2replace, runstatus2replace)
+        if runs2replace != []:
+            aws_s3_utils.edit_json_object('s3://hubseq-db/{}/runs.json'.format(input_json['teamid']), runs2replace, runstatus2replace)
     
         message_response = json.dumps(json_out, default=aws_s3_utils.dateConverter)
     
